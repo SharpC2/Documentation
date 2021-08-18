@@ -48,19 +48,24 @@ You will then need to compile the Drone to a new DLL (with the Release configura
 Drone modules can be used to provide additional functionality to a Drone.  As with Handlers, a module can be written directly into the Drone or as a standalone DLL.
 If implemented as a standalone DLL, these can be pushed to the Drone during runtime (via the ``load-module`` command in the client).
 
-Create a new .NET (Framework) Class Library and add the Drone project as a reference.  Create your drone module class and inherit from ``DroneModule``.
+Create a new .NET (Framework) Class Library and add the Drone project as a reference.  
 
 ![](custom-drone-module.png)
 
-A single module can have multiple commands.  The ``name`` and ``description`` of each command will be shown in the client.
+Create your drone module class and inherit from ``DroneModule``.  A single module can have multiple commands.  The ``name`` and ``description`` of each command will be shown in the client.
 
-![](test-command.png)
+![](demo-command.png)
 
 You may add arguments to a command like:
 
 ```c#
-var command = new Command();
-command.Arguments.Add(new Command.Argument());
+public override List<Command> Commands => new List<Command>()
+{
+    new ("demo", "A demo command", ExecuteDemoCommand, new List<Command.Argument>
+    {
+        new("pid", optional: false)
+    })
+};
 ```
 
 An argument has a label, can be optional or mandatory, and can be an artefact.  An artefact is a data blob sent with the task (think `execute-assembly` etc).
@@ -94,4 +99,60 @@ Usage: test
 [+] Output received:
 Hello from Test Command
 [+] Task complete.
+```
+
+### API Hooking
+
+The Drone is compiled with [MinHook.NET](https://github.com/CCob/MinHook.NET), the engine for which is exposed as a protected field within the `DroneModule` abstract class, called `Hooks`.
+
+You must define a delegate and a detour method.  It's also a good idea to store a reference to the original hooked function so it can be restored.  A complete implemention could look something like this:
+
+```c#
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Threading;
+
+using Drone.Models;
+using Drone.Modules;
+
+namespace Drone
+{
+    public class DemoModule : DroneModule
+    {
+        public override string Name => "demo-module";
+
+        public override List<Command> Commands => new List<Command>()
+        {
+            new ("hook-msgbox", "Hook the MessageBox API", HookMessageBox),
+            new ("unhook-msgbox", "UnHook the MessageBox API", UnHookMessageBox)
+        };
+
+        private MessageBoxWDelegate _messageBoxWOriginal;
+
+        private void HookMessageBox(DroneTask task, CancellationToken token)
+        {
+            _messageBoxWOriginal ??= Hooks.CreateHook(
+                "user32.dll",
+                "MessageBoxW",
+                new MessageBoxWDelegate(MessageBoxWDetour));
+
+            Hooks.EnableHook(_messageBoxWOriginal);
+        }
+        
+        private void UnHookMessageBox(DroneTask task, CancellationToken token)
+        {
+            if (_messageBoxWOriginal is not null)
+            {
+                Hooks.DisableHook(_messageBoxWOriginal);
+            }
+        }
+
+        private int MessageBoxWDetour(IntPtr hWnd, string text, string caption, uint type)
+            => _messageBoxWOriginal(hWnd, "HOOKED!", caption, type);
+
+        [UnmanagedFunctionPointer(CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private delegate int MessageBoxWDelegate(IntPtr hWnd, string text, string caption, uint type);
+    }
+}
 ```

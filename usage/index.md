@@ -201,28 +201,20 @@ To interact with a Drone, use `interact <guid>`.
 Name              Description
 ----              -----------
 back              Back to previous screen
-bypass-amsi       Bypass AMSI for post-ex tasks
+bypass            Set a directive to bypass AMSI/ETW on tasks
 cd                Change working directory
-execute-assembly  Execute a .NET assembly in memory
+execute-assembly  Execute a .NET assembly
 exit              Exit this Drone
+getuid            Get current identity
 help              Get help
 load-module       Load an external Drone module
-ls                List files and directories
-overload          Map a native DLL into memory
-pwd               Print current working directory
-rev2self          Drop token impersonation
-rportfwd-list     List all active reverse port forwards
-rportfwd-purge    Purge all active reverse port forwards
-rportfwd-start    Start a new reverse port forward
-rportfwd-stop     Stop a reverse port forward
+ls                List filesystem
+overload          Map and execute a native DLL
+pwd               Print working directory
 run               Run a command
 shell             Run a command via cmd.exe
+shinject          Inject arbitrary shellcode into a process
 sleep             Set sleep interval and jitter
-token-del         Remove and dispose this token from the token store
-token-list        List tokens in the token store
-token-make        Create and impersonate a token with the given credentials
-token-steal       Duplicate and impersonate the token of the given process
-token-use         Use a token in the token store
 ```
 
 `help [command]` will provide a short description and usage.
