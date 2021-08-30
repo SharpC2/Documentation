@@ -24,4 +24,5 @@ Index
    c2profile/index
    customising/index
    command-ref/index
+   detection/index
    credits/index
