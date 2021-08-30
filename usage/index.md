@@ -6,7 +6,7 @@ Launch the team server and provide a shared password that will be used by users 
 
 
 ```text
-rasta@Rastas-MBP publish % sudo ./TeamServer Passw0rd!
+rasta@Rastas-MBP publish % sudo ./TeamServer --password Passw0rd!
 Password:
 info: Microsoft.Hosting.Lifetime[0]
     Now listening on: https://0.0.0.0:8443
