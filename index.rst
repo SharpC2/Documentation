@@ -23,6 +23,7 @@ Index
    usage/index
    c2profile/index
    customising/index
+   hosting-files/index
    command-ref/index
    detection/index
    credits/index
