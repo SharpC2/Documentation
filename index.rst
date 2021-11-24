@@ -21,6 +21,7 @@ Index
    
    building/index
    usage/index
+   peer-to-peer/index
    c2profile/index
    customising/index
    hosting-files/index
