@@ -1,6 +1,6 @@
 # Building
 
-The team server and client are written in .NET and are therefore cross-platform.  To build the projects, you should use `dotnet publish` and target the runtime for the OS you want that component to run on.
+The team server and client are written in .NET 6.0 (LTS) and are therefore cross-platform.  To build the projects, you should use `dotnet publish` and target the runtime for the OS you want that component to run on.
 
 The most common scenario is to run the Team Server on Linux - in which case, you would do:
 
@@ -17,7 +17,7 @@ The built application and all dependencies will then be in:
 /Users/rasta/SharpC2/TeamServer/bin/Release/net5.0/linux-x64/publish/
 ```
 
-The produced executable will be native for the target platform:
+The compiled executable will be native for the target platform:
 
 ```text
 rasta@Rastas-MBP publish % file TeamServer
@@ -34,17 +34,6 @@ rasta@Rastas-MBP Client % dotnet publish -c Release -r macos-x64
 rasta@Rastas-MBP Client % cd bin/Release/net5.0/osx-x64/publish
 rasta@Rastas-MBP publish % file SharpC2
 SharpC2: Mach-O 64-bit executable x86_64
-
-rasta@Rastas-MBP publish % ./SharpC2 
- ___ _                   ___ ___ 
-/ __| |_  __ _ _ _ _ __ / __|_  )
-\__ \ ' \/ _` | '_| '_ \ (__ / / 
-|___/_||_\__,_|_| | .__/\___/___|
-                |_|            
-    @_RastaMouse                  
-    @_xpn_                        
-
-(server)>
 ```
 
 See [https://docs.microsoft.com/en-us/dotnet/core/rid-catalog](https://docs.microsoft.com/en-us/dotnet/core/rid-catalog) for more information on the dotnet RID catalog.

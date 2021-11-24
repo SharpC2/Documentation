@@ -2,13 +2,13 @@
 
 ## Custom C2 Handlers
 
-A C2 Handler is a means by which a Drone communicates with the Team Server (and one day Drone-to-Drone as well).
+A C2 handler is a means by which a drone communicates with the team server or another P2P drone.
 
 ### TeamServer
 
-A Handler can be implemented directly into the existing TeamServer project or as a standalone DLL.  The advantage of a DLL is that it's more easily shareable.
+A handler can be implemented directly into the existing team server project or as a standalone DLL.  The advantage of a DLL is that it's more easily shareable.
 
-Create a .NET Class Library and add the TeamServer as a reference.
+Create a .NET Class Library and add the team server as a reference.
 Create your new handler class and have it inherit from `Handler`.
 
 ![](custom-teamserver-handler.png)
@@ -19,40 +19,34 @@ Your job is to provide overrides for `Name`, `Parameters`, `Start` and `Stop`.
 - `Parameters` is a list of `HandlerParameter`.  Each parameter has a name, a default value and whether or not it's optional.  These parameters appear in the client when configuring the handler.
 - Even though `Start` is a `virtual`, it should be overridden and `base.Start();` called before anything else.  The base implementation ensures that all mandatory parameters have been supplied before continuing.
 
-When a Drone "checks-in", you should recover the `DroneMetadata` and pass it to `TaskService.GetDroneTasks(metadata);` to get any tasks pending for it.
-Equally, if the Drone is "sending data", it should be reconstructed to an `IEnumerable<C2Message>` and passed to `TaskService.RecvC2Data(messages);`.
-
-Once compiled, you can start the Team Server with the `--handler` option to load it.
-
-```
-sudo ./TeamServer --password Passw0rd! --handler /path/to/custom-handler.dll
-```
+When a drone checks in, you should recover the `DroneMetadata` and pass it to `TaskService.GetDroneTasks(metadata);` to get any tasks pending for it.
+Equally, if the drone is sending data, it should be reconstructed to an `IEnumerable<C2Message>` and passed to `TaskService.RecvC2Data(messages);`.
+Once compiled, you can start the team server with the `-h` (--handler) option to load it.
 
 ### Drone
 
-Presently, custom handlers for the Drone can only be implemented directly within the Drone project.  However, implementation is practically identical.  Create a new handler class, inherit from `Handler` and provide overrides for `Name`, `Start` and `Stop`.
+Presently, custom handlers for the drone can only be implemented directly within the drone project.  However, the implementation is practically identical.  Create a new handler class, inherit from `Handler` and provide overrides for `Name`, `Start` and `Stop`.
 
 ```{admonition} Important!
 :class: warning
 
-It's vital that the matching Handlers on the team server and Drone have the same `Name`.
-This is used by dnlib to embed the parameters from the correct Handler on the team server into the Drone during payload generation.
+It's vital that the matching handlers on the team server and drone have the same `Name`.
+This is used by dnlib to embed the parameters from the correct handler on the team server into the drone during payload generation.
 ```
 
 ![](custom-drone-handler.png)
 
-To check if there are any messages to send, use `OutboundQueue.IsEmpty`.  If false, get an `IEnumerable<C2Message>` with `GetOutboundQueue()`.  This data can be transformed into whatever format is appropriate for your Handler.
-After talking to the team server and receiving an `IEnumerable<C2Message>`, iterate over each one and call `InboundQueue.Enqueue(message)` for them to be processed by the Drone.
+To check if there are any messages to send, use `OutboundQueue.IsEmpty`.  If there are, get an `IEnumerable<C2Message>` with `GetOutboundQueue()`.  This data can be transformed into whatever format is appropriate for your handler.
+After talking to the team server and receiving an `IEnumerable<C2Message>`, iterate over each one and call `InboundQueue.Enqueue(message)` for them to be processed by the drone.
 
-You will then need to compile the Drone to a new DLL (with the Release configuration) and place it in the team server's `Resources` directory:  [https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources](https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources)
-
+You will then need to compile the drone to a new DLL (with the Release configuration) and place it in the team server's `Resources` directory:  [https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources](https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources)
 
 ## Custom Drone Modules
 
-Drone modules can be used to provide additional functionality to a Drone.  As with Handlers, a module can be written directly into the Drone or as a standalone DLL.
-If implemented as a standalone DLL, these can be pushed to the Drone during runtime (via the `load-module` command in the client).
+Drone modules can be used to provide additional functionality to a drone.  As with handlers, a module can be written directly into the Drone or as a standalone DLL.
+If implemented as a standalone DLL, these can be pushed to the drone during runtime (via the `load-module` command in the client).
 
-Create a new .NET (Framework) Class Library and add the Drone project as a reference.  
+Create a new .NET (Framework or Standard) Class Library and add the drone project as a reference.
 
 ![](custom-drone-module.png)
 
@@ -72,42 +66,12 @@ public override List<Command> Commands => new List<Command>()
 };
 ```
 
-An argument has a label, can be optional or mandatory, and can be an artefact.  An artefact is a data blob sent with the task (think `execute-assembly` etc).
-
-```text
-[7c7a5403ed] # load-module /Users/rasta/Desktop/DemoModule.dll
-[+] Drone tasked: b3b6615656
-
-[7c7a5403ed] # [+] Drone checked in. Sent 6924 bytes.
-[+] Output received:
-Module DemoModule loaded.
-[+] Task complete.
-```
-
+An argument has a `label`, can be `optional`, and can be an `artefact`.  An artefact is a data blob sent with the task (think `execute-assembly` etc).
 Once the module is loaded, the new command(s) will be available.
-
-```text
-[7c7a5403ed] # help
-
-Name              Description
-----              -----------
-test              This is a test
-
-[7c7a5403ed] # help test
-This is a test
-Usage: test
-
-[7c7a5403ed] # test
-[+] Drone tasked: acb1c6aa43
-[7c7a5403ed] # [+] Drone checked in. Sent 89 bytes.
-[+] Output received:
-Hello from Test Command
-[+] Task complete.
-```
 
 ### API Hooking
 
-The Drone is compiled with [MinHook.NET](https://github.com/CCob/MinHook.NET), the engine for which is exposed as a protected field within the `DroneModule` abstract class, called `Hooks`.
+The drone is compiled with [MinHook.NET](https://github.com/CCob/MinHook.NET), the engine for which is exposed as a protected field within the `DroneModule` abstract class, called `Hooks`.
 
 You must define a delegate and a detour method.  It's also a good idea to store a reference to the original hooked function so it can be restored.  A complete implemention could look something like this:
 

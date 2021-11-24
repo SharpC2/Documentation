@@ -6,6 +6,8 @@ Example profile:
 
 ```yaml
 Stage:
+  SleepTime: 60
+  SleepJitter: 20
   DllExport: Execute
 PostExploitation:
   BypassAmsi: false
@@ -18,26 +20,26 @@ ProcessInjection:
 ```
 
 ## Stage Block
-### DllExport
-This is the name of the export in the DLL payload format.  This export name is used with rundll32 to run the payload, e.g:
+### SleepTime
+The sleep time (in seconds) of the HTTP drone - it defines how often it checks into the team server. Does not effect P2P drones.
 
-```
-rundll32 drone.dll,Execute
-```
+### SleepJitter
+A percentage offset by which to randomise the sleep time. For example, a 60 second sleep with a 20% jitter means the drone will randomly sleep between 48 and 72 seconds.
+
+### DllExport
+The name of the export in the DLL payload format.  This export name is used with rundll32 to run the payload, e.g: `rundll32 drone.dll,Execute`.
 
 ## Post Exploitation Block
 ### BypassAmsi / BypassEtw
-These tell the Drone whether or not it should attempt to bypass AMSI and ETW on post-ex tasks by default.  This directive can be toggled during runtime with the `bypass` command.
+These tell the drone whether or not it should attempt to bypass AMSI and ETW on post-ex tasks.  This directive can be toggled during runtime with the `bypass` command.
 
 ### SpawnTo
-Some post-ex tasks require the Drone to spawn another process - this setting tells the Drone what process that should be.
+Some post-ex tasks require the drone to spawn another process - this defines what process that should be.
 
 ### AppDomain
-Post-ex tasks such as `execute-assembly` will create a disposable AppDomain to execute the given .NET assembly.  The "friendly name" of those AppDomains can be controlled here.  If you want this name to be random each time, use the literal string `random`.  This directive is also used when generating the raw shellcode payload.
+This sets the "friendly name" of AppDomain used by the donut-generated (raw) shellcode payload. If you want this name to be random each time, use the literal string `random`.
 
 ## Process Injection Block
-This block is used to control the behaviour of process injection by the Drone, i.e. which APIs are used.
-
 ### Allocation
 Controls the API(s) used to allocate the shellcode into a target process.  Options are `NtWriteVirtualMemory` and `NtMapViewOfSection`.
 
@@ -51,17 +53,13 @@ Uses `NtCreateSection` to create a section in the local process, `NtMapViewOfSec
 Controls the API(s) used to execute shellcode once it's been written into the target process.  Options are `NtCreateThreadEx`, `RtlCreateUserThread` and `CreateRemoteThread`.
 
 ## Using a Profile
-To use a profile, you must start the Team Server with the `--profile` option.  Only one profile may be used at a time.
-
-```
-$ dotnet TeamServer.dll --password Passw0rd! --profile /Users/rasta/Desktop/example-profile.yaml
-```
+To use a profile, you must start the team server with the `-y` (--profile) option.  Only one profile may be used at a time.
 
 ## C2Lint
 The SharpC2 solution includes a C2Lint tool to help validate YAML profiles.
 
 ```
-$ dotnet C2Lint.dll /Users/rasta/Desktop/example-profile.yaml 
+$ dotnet run /path/to/profile.yaml
 
 Stage Block
 ===========
@@ -98,6 +96,6 @@ AppDomain will have a random value each time.
 Process Injection Block
 =======================
 Allocation: NtWriteVirtualMemory
-Execution: QueueUserAPC
+Execution: RtlCreateUserThrea
 [!!!] Execution Technique is not valid.  Options are NtCreateThreadEx, RtlCreateUserThread, CreateRemoteThread.
 ```

