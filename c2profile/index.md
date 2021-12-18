@@ -6,9 +6,10 @@ Example profile:
 
 ```yaml
 Stage:
-  SleepTime: 60
-  SleepJitter: 20
+  SleepTime: 5
+  SleepJitter: 0
   DllExport: Execute
+  SendStandardApi: true
 PostExploitation:
   BypassAmsi: false
   BypassEtw: false
@@ -21,17 +22,20 @@ ProcessInjection:
 
 ## Stage Block
 ### SleepTime
-The sleep time (in seconds) of the HTTP drone - it defines how often it checks into the team server. Does not effect P2P drones.
+The sleep time (in seconds) of the HTTP drone - it defines how often it checks into the team server. Does nothing for the TCP and SMB drones.
 
 ### SleepJitter
-A percentage offset by which to randomise the sleep time. For example, a 60 second sleep with a 20% jitter means the drone will randomly sleep between 48 and 72 seconds.
+A percentage offset by which to randomise the sleep time. For example, a 60 second sleep with a 20% jitter means the drone will randomly sleep for 48-72 seconds.
 
 ### DllExport
 The name of the export in the DLL payload format.  This export name is used with rundll32 to run the payload, e.g: `rundll32 drone.dll,Execute`.
 
+### SendStandardApi
+Tells the team server whether or not to automatically send stdapi.dll to the drone.  If set to false, the module can still be pushed manually using the `load-module` command.
+
 ## Post Exploitation Block
 ### BypassAmsi / BypassEtw
-These tell the drone whether or not it should attempt to bypass AMSI and ETW on post-ex tasks.  This directive can be toggled during runtime with the `bypass` command.
+These tell the drone whether or not it should attempt to bypass AMSI and ETW on post-ex tasks.  This directive can also be toggled during runtime with the `bypass` command.
 
 ### SpawnTo
 Some post-ex tasks require the drone to spawn another process - this defines what process that should be.

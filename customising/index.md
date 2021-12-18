@@ -6,7 +6,7 @@ A C2 handler is a means by which a drone communicates with the team server or an
 
 ### TeamServer
 
-A handler can be implemented directly into the existing team server project or as a standalone DLL.  The advantage of a DLL is that it's more easily shareable.
+A handler can be implemented directly into the existing team server project or as a standalone DLL.  The advantage of a DLL is that it's more easily shareable and/or can be hot-swapped into a drone during runtime.
 
 Create a .NET Class Library and add the team server as a reference.
 Create your new handler class and have it inherit from `Handler`.
@@ -19,18 +19,18 @@ Your job is to provide overrides for `Name`, `Parameters`, `Start` and `Stop`.
 - `Parameters` is a list of `HandlerParameter`.  Each parameter has a name, a default value and whether or not it's optional.  These parameters appear in the client when configuring the handler.
 - Even though `Start` is a `virtual`, it should be overridden and `base.Start();` called before anything else.  The base implementation ensures that all mandatory parameters have been supplied before continuing.
 
-When a drone checks in, you should recover the `DroneMetadata` and pass it to `TaskService.GetDroneTasks(metadata);` to get any tasks pending for it.
-Equally, if the drone is sending data, it should be reconstructed to an `IEnumerable<C2Message>` and passed to `TaskService.RecvC2Data(messages);`.
+When a drone checks in, you should recover the `DroneMetadata` and pass it to `Server.GetDroneTasks(metadata);` to get any tasks pending for it.
+Equally, if the drone is sending data, it should be reconstructed to an `IEnumerable<C2Message>` and passed to `Server.HandleC2Envelopes(messages);`.
 Once compiled, you can start the team server with the `-h` (--handler) option to load it.
 
 ### Drone
 
-Presently, custom handlers for the drone can only be implemented directly within the drone project.  However, the implementation is practically identical.  Create a new handler class, inherit from `Handler` and provide overrides for `Name`, `Start` and `Stop`.
+The implementation in the drone is practically identical.  Create a new handler class, inherit from `Handler` and provide overrides for `Name`, `Start` and `Stop`.
 
 ```{admonition} Important!
 :class: warning
 
-It's vital that the matching handlers on the team server and drone have the same `Name`.
+It's vital that the matching handlers on the team server and drone have the same class name.
 This is used by dnlib to embed the parameters from the correct handler on the team server into the drone during payload generation.
 ```
 
@@ -39,12 +39,12 @@ This is used by dnlib to embed the parameters from the correct handler on the te
 To check if there are any messages to send, use `OutboundQueue.IsEmpty`.  If there are, get an `IEnumerable<C2Message>` with `GetOutboundQueue()`.  This data can be transformed into whatever format is appropriate for your handler.
 After talking to the team server and receiving an `IEnumerable<C2Message>`, iterate over each one and call `InboundQueue.Enqueue(message)` for them to be processed by the drone.
 
-You will then need to compile the drone to a new DLL (with the Release configuration) and place it in the team server's `Resources` directory:  [https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources](https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources)
+If you're hardoding this handler into the drone, You'll need to compile the drone to a new DLL (with the Release configuration) and place it in the team server's `Resources` directory:  [https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources](https://github.com/SharpC2/SharpC2/tree/main/TeamServer/Resources).  If you're keeping it as an external DLL, then you can push it to the drone at runtime with the `load-handler` command.
 
 ## Custom Drone Modules
 
 Drone modules can be used to provide additional functionality to a drone.  As with handlers, a module can be written directly into the Drone or as a standalone DLL.
-If implemented as a standalone DLL, these can be pushed to the drone during runtime (via the `load-module` command in the client).
+If implemented as a standalone DLL, these can be pushed to the drone during runtime with the `load-module` command.
 
 Create a new .NET (Framework or Standard) Class Library and add the drone project as a reference.
 

