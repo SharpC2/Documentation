@@ -6,7 +6,7 @@ Launch the team server and provide a shared password that will be used by users 
 
 
 ```text
-rasta@Rastas-MBP ~/S/T/b/R/n/o/publish (main)> sudo ./TeamServer -p Passw0rd!
+rasta@dev ~/S/T/b/R/n/o/publish (main)> sudo ./TeamServer -p Passw0rd!
 info: Microsoft.Hosting.Lifetime[14]
       Now listening on: https://0.0.0.0:8443
 info: Microsoft.Hosting.Lifetime[0]
@@ -25,7 +25,7 @@ If the `ASPNETCORE_ENVIRONMENT` environment variable is set to `Development`, th
 The client requires several command line options including `-s` (--server), `-p` (--port), `-n` (--nick) and `-P` (--password). You'll be prompted to accept the server's self-signed certificate unless `-i` (--ignore-ssl) is used.
 
 ```text
-rasta@Rastas-MBP ~/S/C/b/R/n/o/publish (main)> ./SharpC2 -s localhost -p 8443 -n rasta -P Passw0rd! -i
+rasta@dev ~/S/C/b/R/n/o/publish (main)> ./SharpC2 -s localhost -p 8443 -n rasta -P Passw0rd! -i
   ___ _                   ___ ___ 
  / __| |_  __ _ _ _ _ __ / __|_  )
  \__ \ ' \/ _` | '_| '_ \ (__ / / 
