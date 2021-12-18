@@ -13,7 +13,7 @@ SharpC2 has built-in TCP & SMB handlers for peer-to-peer C2 between drones.  The
 [+] LocalhostOnly set to true
 ```
 
-```
+```text
 [drones] > payload demo-tcp Exe /tmp/tcp-drone.exe
 [+] 164352 bytes saved.
 ```
