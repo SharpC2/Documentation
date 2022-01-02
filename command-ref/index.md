@@ -2,7 +2,7 @@
 
 This page provides a simple reference for the default commands provided by the framework.
 
-## core
+## Core Module
 
 ### abort
 Cancels a running task.  Tasks are referred to by a short GUID which is provided when a task starts running.
@@ -70,34 +70,20 @@ Sets the sleep interval (in seconds) and jitter (percentage) of the drone.  This
 ### upload
 Uploads a file to the current working directory of the drone.
 
-## stdapi
-
-### delete-token
-Remove a token from the token store.
+## StandardApi Module
 
 ### execute-assembly
 Loads a .NET assembly into memory and calls its Entry Point.  Supports streaming output.
 
-### list-tokens
-List the tokens currently in the token store.
+### hooks-detect
 
-### make-token
-Uses the `LogonUserA` API to create a new token with the provided plaintext credentials (domain, username and password).  Uses the `LOGON32_LOGON_NEW_CREDENTIALS` logon type which makes the token suitable for network interactions, but not local ones.  Token is automatically impersonated and added to the token store.  Credentials are not verified.
+Attempts to detect trampoline/detour hooks within NTDLL.
 
 ### overload
 Maps a native DLL into memory of the drone and calls the specifed export with optional arguments.  It attempts to find a legitimate signed module to overload and will fail execution if a suitable module cannot be found.  There's currently no way of modifying that behaviour.
 
-### powershell
-Execute PowerShell code using [Lee Christensen](http://twitter.com/tifkin_)'s [PowerShellRunner](https://github.com/leechristensen/UnmanagedPowerShell/blob/master/PowerShellRunner/PowerShellRunner.cs).
-
-### powershell-import
-Import a PowerShell script into the current drone session. Can then be executed with the `powershell` command.  A drone can only hold one script at a time.
-
 ### ps
 List running processes.
-
-### rev2self
-Drops any impersonatation and reverts you back to your own token.  Tokens are kept in the token store and can be re-used with the `use-token` command.
 
 ### run
 Execute the specified binary with optional arguments.  Does not use cmd.exe.  Returns output.
@@ -111,13 +97,26 @@ Execute a command via the Command Prompt.  Returns output.
 ### shinject
 Inject arbitrary shellcode into the specified PID.  The style of injection is governed by the [Process Injection](../c2profile/index.html#process-injection-block) block of the C2 profile.
 
+## Token Module
+
+### make-token
+Uses the `LogonUserA` API to create a new token with the provided plaintext credentials (domain, username and password).  Uses the `LOGON32_LOGON_NEW_CREDENTIALS` logon type which makes the token suitable for network interactions, but not local ones.  Token is automatically impersonated and added to the token store.  Credentials are not verified.
+
+### rev2self
+Drops any impersonatation and reverts you back to your own token.  Tokens are kept in the token store and can be re-used with the `use-token` command.
+
 ### steal-token
 Calls `DuplicateTokenEx` to duplicate the access token of the specified process.  Token is automatically impersonated and added to the token store.
 
-### use-token
-Use the specified token from the store.  Tokens are referred to by a human-readable handle format.
+## PowerShell Module
 
-## ssh
+### powershell
+Execute PowerShell code using [Lee Christensen](http://twitter.com/tifkin_)'s [PowerShellRunner](https://github.com/leechristensen/UnmanagedPowerShell/blob/master/PowerShellRunner/PowerShellRunner.cs).
+
+### powershell-import
+Import a PowerShell script into the current drone session. Can then be executed with the `powershell` command.  A drone can only hold one script at a time.
+
+## SSH Module
 
 ### ssh-cmd
 Execute a command on a target via SSH.  Uses the [Renci.SshNet](https://github.com/sshnet/SSH.NET) library.
