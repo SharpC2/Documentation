@@ -100,13 +100,13 @@ Inject arbitrary shellcode into the specified PID.  The style of injection is go
 ## Token Module
 
 ### make-token
-Uses the `LogonUserA` API to create a new token with the provided plaintext credentials (domain, username and password).  Uses the `LOGON32_LOGON_NEW_CREDENTIALS` logon type which makes the token suitable for network interactions, but not local ones.  Token is automatically impersonated and added to the token store.  Credentials are not verified.
+Uses the `LogonUserA` API to create a new token with the provided plaintext credentials (domain, username and password).  Uses the `LOGON32_LOGON_NEW_CREDENTIALS` logon type which makes the token suitable for network interactions, but not local ones.  Token is automatically impersonated.  Credentials are not verified.
 
 ### rev2self
-Drops any impersonatation and reverts you back to your own token.  Tokens are kept in the token store and can be re-used with the `use-token` command.
+Drops any impersonatation and reverts you back to your own token.
 
 ### steal-token
-Calls `DuplicateTokenEx` to duplicate the access token of the specified process.  Token is automatically impersonated and added to the token store.
+Calls `DuplicateTokenEx` to duplicate the access token of the specified process.  Token is automatically impersonated.
 
 ## PowerShell Module
 
